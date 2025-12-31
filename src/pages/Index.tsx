@@ -1,14 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { GlassCard } from "@/components/GlassCard";
-import { InfoItem } from "@/components/InfoItem";
+import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 import { Spinner } from "@/components/Spinner";
 import { PreviewSection } from "@/components/PreviewSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatSize, truncateId } from "@/lib/format";
 import { toast } from "sonner";
-import { Search, Eye, Download, Share2, Link2 } from "lucide-react";
+import {
+  Search,
+  Eye,
+  Download,
+  Share2,
+  Link2,
+  Hash,
+  HardDrive,
+  Layers,
+  FileType,
+  CheckCircle2,
+} from "lucide-react";
 
 interface BlobInfo {
   id: string;
@@ -20,7 +34,6 @@ interface BlobInfo {
   available_locally: boolean;
 }
 
-// Demo data for showcase
 const DEMO_BLOB: BlobInfo = {
   id: "a1b2c3d4e5f67890abcdef1234567890",
   size: 2516582,
@@ -48,10 +61,8 @@ export default function Explorer() {
     setBlobInfo(null);
     setPreviewUrl(null);
 
-    // Simulate API call - replace with actual API
     try {
       await new Promise((resolve) => setTimeout(resolve, 800));
-      // In production: const response = await fetch(`/api/blob/${blobId}/info`);
       setBlobInfo({ ...DEMO_BLOB, id: blobId });
       toast.success("Blob info loaded successfully");
     } catch (error) {
@@ -67,7 +78,6 @@ export default function Explorer() {
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      // Demo preview - in production fetch actual blob
       setPreviewUrl(
         "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop"
       );
@@ -82,7 +92,6 @@ export default function Explorer() {
   const downloadBlob = async () => {
     if (!blobInfo) return;
     toast.success("Download started");
-    // In production: trigger actual download
   };
 
   const shareBlob = () => {
@@ -110,115 +119,162 @@ export default function Explorer() {
   };
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-3xl">
-        <GlassCard>
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-              🌐 ONVM Blob Gateway
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Decentralized Content Delivery Network
-            </p>
-          </div>
+    <div className="min-h-screen relative">
+      <AnimatedBackground />
 
-          <div className="flex gap-3 mb-6">
-            <Input
-              type="text"
-              placeholder="Enter Blob ID (hex)"
-              value={blobId}
-              onChange={(e) => setBlobId(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="flex-1 h-12 text-base border-2 border-border focus:border-primary"
-            />
-            <Button onClick={fetchBlobInfo} disabled={loading}>
-              <Search className="h-4 w-4" />
-              Fetch Info
-            </Button>
-          </div>
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-3xl">
+          <Header />
 
-          {loading && <Spinner />}
-
-          {blobInfo && !loading && (
-            <div className="space-y-6 animate-slide-up">
-              <div className="bg-muted rounded-xl p-5">
-                <h3 className="font-semibold text-foreground mb-4">
-                  Blob Information
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex justify-between p-3 bg-card rounded-lg">
-                    <span className="font-semibold text-muted-foreground">ID</span>
-                    <span className="font-mono text-foreground">
-                      {truncateId(blobInfo.id)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-card rounded-lg">
-                    <span className="font-semibold text-muted-foreground">Size</span>
-                    <span className="font-mono text-foreground">
-                      {formatSize(blobInfo.size)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-card rounded-lg">
-                    <span className="font-semibold text-muted-foreground">Chunks</span>
-                    <span className="font-mono text-foreground">
-                      {blobInfo.chunk_count}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-card rounded-lg">
-                    <span className="font-semibold text-muted-foreground">Subchunks</span>
-                    <span className="font-mono text-foreground">
-                      {blobInfo.subchunk_count}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-card rounded-lg">
-                    <span className="font-semibold text-muted-foreground">MIME Type</span>
-                    <span className="font-mono text-foreground">
-                      {blobInfo.mime_type || "Unknown"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-card rounded-lg">
-                    <span className="font-semibold text-muted-foreground">Detected</span>
-                    <span className="font-mono text-foreground">
-                      {blobInfo.detected_mime_type || "Not detected"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-card rounded-lg sm:col-span-2">
-                    <span className="font-semibold text-muted-foreground">Local</span>
-                    <span className="font-mono text-foreground">
-                      {blobInfo.available_locally ? "Yes ✓" : "No"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-                  <Button onClick={viewBlob} className="w-full">
-                    <Eye className="h-4 w-4" />
-                    View
-                  </Button>
-                  <Button onClick={downloadBlob} className="w-full">
-                    <Download className="h-4 w-4" />
-                    Download
-                  </Button>
-                  <Button onClick={shareBlob} variant="secondary" className="w-full">
-                    <Share2 className="h-4 w-4" />
-                    Share
-                  </Button>
-                  <Button onClick={copyDirectLink} variant="secondary" className="w-full">
-                    <Link2 className="h-4 w-4" />
-                    CDN Link
-                  </Button>
-                </div>
-              </div>
-
-              {previewUrl && (
-                <PreviewSection
-                  content={previewUrl}
-                  contentType={blobInfo.mime_type}
+          <GlassCard glow>
+            {/* Search Section */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Enter Blob ID (hex)"
+                  value={blobId}
+                  onChange={(e) => setBlobId(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="pl-12"
                 />
-              )}
+              </div>
+              <Button
+                onClick={fetchBlobInfo}
+                disabled={loading}
+                size="lg"
+                className="sm:w-auto"
+              >
+                <Search className="w-5 h-5" />
+                Fetch Info
+              </Button>
             </div>
-          )}
-        </GlassCard>
+
+            <AnimatePresence mode="wait">
+              {loading && (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Spinner />
+                </motion.div>
+              )}
+
+              {blobInfo && !loading && (
+                <motion.div
+                  key="content"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <StatCard
+                      icon={Hash}
+                      label="Content ID"
+                      value={truncateId(blobInfo.id, 12)}
+                      delay={0}
+                    />
+                    <StatCard
+                      icon={HardDrive}
+                      label="Size"
+                      value={formatSize(blobInfo.size)}
+                      delay={0.1}
+                    />
+                    <StatCard
+                      icon={Layers}
+                      label="Chunks"
+                      value={`${blobInfo.chunk_count} / ${blobInfo.subchunk_count}`}
+                      delay={0.2}
+                    />
+                    <StatCard
+                      icon={FileType}
+                      label="MIME Type"
+                      value={blobInfo.mime_type || "Unknown"}
+                      delay={0.3}
+                    />
+                    <StatCard
+                      icon={FileType}
+                      label="Detected"
+                      value={blobInfo.detected_mime_type || "N/A"}
+                      delay={0.4}
+                    />
+                    <StatCard
+                      icon={CheckCircle2}
+                      label="Available"
+                      value={blobInfo.available_locally ? "Local ✓" : "Remote"}
+                      delay={0.5}
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-3"
+                  >
+                    <Button onClick={viewBlob} variant="glow">
+                      <Eye className="w-5 h-5" />
+                      View
+                    </Button>
+                    <Button onClick={downloadBlob}>
+                      <Download className="w-5 h-5" />
+                      Download
+                    </Button>
+                    <Button onClick={shareBlob} variant="secondary">
+                      <Share2 className="w-5 h-5" />
+                      Share
+                    </Button>
+                    <Button onClick={copyDirectLink} variant="secondary">
+                      <Link2 className="w-5 h-5" />
+                      CDN Link
+                    </Button>
+                  </motion.div>
+
+                  {/* Preview */}
+                  {previewUrl && (
+                    <PreviewSection
+                      content={previewUrl}
+                      contentType={blobInfo.mime_type}
+                    />
+                  )}
+                </motion.div>
+              )}
+
+              {/* Empty State */}
+              {!blobInfo && !loading && (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
+                    <Search className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground">
+                    Enter a Blob ID to get started
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </GlassCard>
+
+          {/* Footer */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="text-center text-sm text-muted-foreground mt-6"
+          >
+            Powered by ONVM Decentralized Network
+          </motion.p>
+        </div>
       </div>
     </div>
   );
